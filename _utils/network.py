@@ -53,8 +53,8 @@ def load_model(model_name, with_hooks=True):
                 layer_name = layer
                 child.register_forward_hook(get_activation(layer_name))
                 layers.append(layer_name)
-            print(f"Loaded {model_name} with {len(layers)} layers")
-            return layers
+        print(f"Loaded {model_name} with {len(layers)} layers")
+        return layers
     else:
         print("Model loaded")
         return
