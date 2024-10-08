@@ -67,3 +67,11 @@ def load_multiple_stim_files(path):
                 stim_data[key] = np.array(ref)
                     
     return stim_data
+
+def save_stims(stims, path):
+    num_stim = stims.shape[0]
+    for stim_i in range(num_stim):
+        # save image
+        img = stims[stim_i]
+        img = np.transpose(img, (1, 2, 0))
+        plt.imsave(f'{path}/{stim_i}.png', img)
