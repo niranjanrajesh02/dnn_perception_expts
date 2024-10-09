@@ -18,17 +18,6 @@ def nan_corrcoeff(x,y):
 
 # normalize X's columns to [0,1]
 def normalize(X):
-    # X_min = X.min(axis=0)
-    # X_max = X.max(axis=0)
-    # X_range = X_max - X_min
-    # print(X_range)
-    # if np.sum(X_range) == 0:
-    #     print("All values in X are the same")
-    #     return 
-    # else:
-    #     X = (X - X_min) / X_range
-    #     return X
-
     scaler = MinMaxScaler()
     scaler.fit(X)
     Xn = scaler.transform(X)

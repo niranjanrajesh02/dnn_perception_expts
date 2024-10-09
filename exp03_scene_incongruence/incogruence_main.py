@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(1, 'D:/Niranjan_Work/dnns_qualitative/expts_py')
+sys.path.insert(1, 'D:/Niranjan_Work/dnns_qualitative/dnn_perception_expts')
 import numpy as np
 import pickle
 from tqdm import tqdm

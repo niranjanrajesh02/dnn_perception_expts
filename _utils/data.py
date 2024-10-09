@@ -17,7 +17,8 @@ def load_stim_file(path):
         if len(stim.shape) == 2:
             # repeat the image 3 times
             stim = np.repeat(stim[:, :, np.newaxis], 3, axis=2)
-
+        # print(stim)
+        stim = stim.astype(np.uint8)
         img = Image.fromarray(stim)
         padding_transform = None
         
@@ -68,7 +69,7 @@ def load_multiple_stim_files(path):
                     
     return stim_data
 
-def save_stims(stims, path):
+def save_stims(stims, path='./images'):
     num_stim = stims.shape[0]
     for stim_i in range(num_stim):
         # save image
