@@ -21,5 +21,6 @@ def normalize(X):
     scaler = MinMaxScaler()
     scaler.fit(X)
     Xn = scaler.transform(X)
+    
 
     return Xn

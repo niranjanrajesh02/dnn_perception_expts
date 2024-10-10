@@ -5,13 +5,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import h5py
+from tqdm import tqdm
 
 # loads stim file as an array of 3x224x224 images
 def load_stim_file(path):
     mirror_data = sio.loadmat(path, squeeze_me=True, struct_as_record=True)
     stim_data = []
-
-    for i, stim in enumerate(mirror_data['stim']):
+    print("Loading stimuli ...")
+    for i, stim in enumerate(tqdm(mirror_data['stim'])):
         h,w = stim.shape[0],stim.shape[1]
         # if 1 channel, convert to 3 channels
         if len(stim.shape) == 2:

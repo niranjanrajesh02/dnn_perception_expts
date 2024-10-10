@@ -57,7 +57,7 @@ def morph_ref_sparseness_correlation(model):
         layerwise_reps = np.array(layerwise_reps) # n_stim x n_units
         normalized_layerwise_reps = normalize(layerwise_reps)
 
-        van_units = np.where(np.sum(normalized_layerwise_reps, axis=0)>0)[0] 
+        van_units = np.where(np.sum(normalized_layerwise_reps, axis=0)>0)[0] # if one unit responds the same way to all stimuli, its' normalized value will be 0, so sum will also remain 0
         layerwise_van_reps = normalized_layerwise_reps[:, van_units]
 
 
