@@ -8,11 +8,11 @@ import h5py
 from tqdm import tqdm
 
 # loads stim file as an array of 3x224x224 images
-def load_stim_file(path):
+def load_stim_file(path, stim_var='stim'):
     mirror_data = sio.loadmat(path, squeeze_me=True, struct_as_record=True)
     stim_data = []
     print("Loading stimuli ...")
-    for i, stim in enumerate(tqdm(mirror_data['stim'])):
+    for i, stim in enumerate(tqdm(mirror_data[stim_var])):
         h,w = stim.shape[0],stim.shape[1]
         # if 1 channel, convert to 3 channels
         if len(stim.shape) == 2:

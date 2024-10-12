@@ -15,20 +15,15 @@ num_shapes = 7 # ( 7 shapes with same local shape but varying global shape ) x 7
 # global groups: 0 - diam, 1 - square, 2 - A, 3 - Circle, 4 - X, 5 - N, 6 - Z
 
 img_pair_inds = loadmat('./data/img_pair_inds.mat')['imagepairDetails']
+# subtract all elements by 1 for python indexing
+img_pair_inds = img_pair_inds - 1
 g1, l1 = img_pair_inds[:,0], img_pair_inds[:,1]
 g2, l2 = img_pair_inds[:,2], img_pair_inds[:,3]
 
-indexG = np.where(l1==l2)[0]    
-indexL = np.where(g1==g2)[0]
+indexG = np.where(l1==l2)[0]    # globally different shapes (with same local shapes)
+indexL = np.where(g1==g2)[0]    # locally different shapes (with same global shapes)
 
-
-global_diff_local_same_inds = [] #global_inds
-
-for g in range(7):
-    for i in range(7):
-        for j in range(i+1,7):
-            global_diff_local_same_inds.append([g*7+i,g*7+j])
-
+# print(img_pair_inds[0:10,0])
 
 
 
