@@ -80,7 +80,7 @@ def get_relative_size_index(model):
             mc2 = (img2_resp + img4_resp)/2
 
             T = np.array([img1_resp, img2_resp, img3_resp, img4_resp])
-            residual_error = T + np.mean(T, axis=0) - np.array([mr1, mr2, mc1, mc2]) - np.array([mc1, mc2, mr1, mr2])
+            residual_error = T + np.mean(T, axis=0) - np.array([mr1, mr1, mr2, mr2]) - np.array([mc1, mc2, mc1, mc2])
             residual_error = np.abs(np.sum(residual_error, axis=0))
 
             layer_re.append(residual_error)
