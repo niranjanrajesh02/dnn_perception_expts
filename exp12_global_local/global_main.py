@@ -8,30 +8,31 @@ from _utils.network import load_model, get_layerwise_activations
 from scipy.io import loadmat
 from sklearn.metrics import pairwise_distances
 
-stim_array = load_stim_file('./data/GL.mat')
-# print(stim_array.shape)# 49x3x224x224
 
-num_shapes = 7 # ( 7 shapes with same local shape but varying global shape ) x 7 times for a local shape
-# global groups: 0 - diam, 1 - square, 2 - A, 3 - Circle, 4 - X, 5 - N, 6 - Z
 
-img_pair_inds = loadmat('./data/img_pair_inds.mat')['imagepairDetails']
-# subtract all elements by 1 for python indexing
-img_pair_inds = img_pair_inds - 1
-g1, l1 = img_pair_inds[:,0], img_pair_inds[:,1]
-g2, l2 = img_pair_inds[:,2], img_pair_inds[:,3]
-
-indexG = np.where(l1==l2)[0]    # globally different shapes (with same local shapes)
-indexL = np.where(g1==g2)[0]    # locally different shapes (with same global shapes)
-
-# print(img_pair_inds[0:10,0])
 
 
 
 
 # # extract stim features
-def get_global_advantage(model):
+def get_global_advantage(model, save=False):
+    stim_array = load_stim_file('./data/GL.mat')
+    # print(stim_array.shape)# 49x3x224x224
+
+    num_shapes = 7 # ( 7 shapes with same local shape but varying global shape ) x 7 times for a local shape
+    # global groups: 0 - diam, 1 - square, 2 - A, 3 - Circle, 4 - X, 5 - N, 6 - Z
+
+    img_pair_inds = loadmat('./data/img_pair_inds.mat')['imagepairDetails']
+    # subtract all elements by 1 for python indexing
+    img_pair_inds = img_pair_inds - 1
+    g1, l1 = img_pair_inds[:,0], img_pair_inds[:,1]
+    g2, l2 = img_pair_inds[:,2], img_pair_inds[:,3]
+
+    indexG = np.where(l1==l2)[0]    # globally different shapes (with same local shapes)
+    indexL = np.where(g1==g2)[0]    # locally different shapes (with same global shapes)
     layers = load_model(model)
     print("Extracting layerwise activations...")
+
     image_reps = []
     for stim_i, stim in enumerate(tqdm(stim_array)):
         img_rep = get_layerwise_activations(stim)
@@ -59,8 +60,12 @@ def get_global_advantage(model):
         global_advantage = (mean_global_dist - mean_local_dist) / (mean_global_dist + mean_local_dist)
         layerwise_global_advantage.append(global_advantage)
 
-    with open(f'./results/{model}_global_adv.pkl', 'wb') as f:
-        pickle.dump(layerwise_global_advantage, f)
+    if save:
+        with open(f'./results/{model}_global_adv.pkl', 'wb') as f:
+            pickle.dump(layerwise_global_advantage, f)
+    return np.array(layerwise_global_advantage) ,[]
 
-for model in ['vgg16', 'vit_base']:
-    get_global_advantage(model)
+
+if __name__ == "__main__":
+    for model in ['vgg16', 'vit_base']:
+        get_global_advantage(model, save=True)

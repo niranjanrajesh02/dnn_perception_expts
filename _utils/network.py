@@ -8,7 +8,8 @@ from tqdm import tqdm
 import shelve
 import mmap
 import struct
-
+import torch.nn as nn
+import torchvision
 model = None
 
 # function to get activations from a layer
@@ -19,41 +20,94 @@ def get_activation(name):
         activations[name] = np.squeeze(output.cpu().detach()) #squeeze-removes batchdim, cpu-moves to cpu, detach-removes gradient
     return hook
 
+layers = []
+def register_hooks(module, parent_name=""):
+    # Iterate over the module's children (submodules)
+    for name, child in module.named_children():
+        # Create the full name for the layer
+        full_name = f'{parent_name}_{name}' if parent_name else name
+        if isinstance(child, (nn.Dropout)):
+            # print(f"Skipping layer: {full_name} (Dropout)")
+            continue
+        # If the child module has its own submodules, recurse
+        if len(list(child.children())) > 0:
+            register_hooks(child, full_name)  # Recursive call
+        else:
+            # Register the hook on the leaf module (layer)
+            child.register_forward_hook(get_activation(full_name))
+            layers.append(full_name)
+            # print(f"Hook registered for layer: {full_name}")
 
 
 # loads model and registers hooks
 def load_model(model_name, with_hooks=True):
-    assert model_name in ["vgg16", "vit_base"]
+    assert model_name in ["vgg16", "vit_base", "vgg19", "resnet50", "resnet101", "inception_v3", "inception_v4", "convnext_base", "convnext_large",
+                          "vit_base", "vit_large", "swin_base", "swin_large", "deit_base", "deit_large"]
 
     global model
+    global layers
+    layers = []
+    # Supervised CNNs
     if model_name == "vgg16":
         model = timm.create_model('vgg16_bn.tv_in1k', pretrained=True).eval()
+    elif model_name == "vgg19":
+        model = timm.create_model('vgg19_bn.tv_in1k', pretrained=True).eval()
+    elif model_name == "resnet50":
+        model = timm.create_model('resnet50.tv2_in1k', pretrained=True).eval()
+    elif model_name == "resnet101":
+        model = timm.create_model('resnet101.tv2_in1k', pretrained=True).eval()
+    elif model_name == "inception_v3":
+        model = timm.create_model('inception_v3.tv_in1k', pretrained=True).eval()
+    elif model_name == "inception_v4":
+        model = timm.create_model('inception_v4.tf_in1k', pretrained=True).eval()
+    elif model_name == "convnext_base":
+        model = timm.create_model('convnext_base.fb_in1k', pretrained=True).eval()
+    elif model_name == "convnext_large":
+        model = timm.create_model('convnext_large.fb_in1k', pretrained=True).eval()
+
+    #  Supervised ViTs
     elif model_name == "vit_base":
-        model = timm.create_model('vit_base_patch16_224', pretrained=True).eval()
+        model = torchvision.models.vit_b_16(weights="DEFAULT").eval()
+    elif model_name == "vit_large":
+        model = torchvision.models.vit_l_16(weights="DEFAULT").eval()
+    elif model_name == "swin_base":
+        model = timm.create_model('swin_large_patch4_window7_224.ms_in1k', pretrained=True).eval()
+    elif model_name == "swin_large":
+        model = timm.create_model('swin_large_patch4_window7_224.ms_in22k_ft_in1k', pretrained=True).eval() #! not in1k
+    elif model_name =="deit_base":
+        model = timm.create_model('deit3_base_patch16_224.fb_in1k', pretrained=True).eval()
+    elif model_name == "deit_large":
+        model = timm.create_model('deit3_large_patch16_224.fb_in1k', pretrained=True).eval()
+    
     
     if torch.cuda.is_available():
         model.cuda()
     
-    layers = []
+    # layers = []
 
     if with_hooks:
-        for layer, child in model.named_children():
-            if len(list(child.children())) > 0:
-                    for layer_c, child_c in child.named_children():
-                            layer_name = f'{layer}_{layer_c}'
-                            if len(list(child_c.children())) > 0:
-                                for layer_cc, child_cc in child_c.named_children():
-                                    layer_name = f'{layer}_{layer_c}_{layer_cc}'
-                                    child_cc.register_forward_hook(get_activation(layer_name))
-                                    layers.append(layer_name)
-                            else:
-                                child_c.register_forward_hook(get_activation(layer_name))
-                                layers.append(layer_name)
-            else:
-                layer_name = layer
-                child.register_forward_hook(get_activation(layer_name))
-                layers.append(layer_name)
+        # for layer, child in model.named_children():
+        #     if len(list(child.children())) > 0:
+        #             for layer_c, child_c in child.named_children():
+        #                     layer_name = f'{layer}_{layer_c}'
+        #                     if len(list(child_c.children())) > 0:
+        #                         for layer_cc, child_cc in child_c.named_children():
+        #                             layer_name = f'{layer}_{layer_c}_{layer_cc}'
+        #                             child_cc.register_forward_hook(get_activation(layer_name))
+        #                             layers.append(layer_name)
+        #                     else:
+        #                         child_c.register_forward_hook(get_activation(layer_name))
+        #                         layers.append(layer_name)
+        #     else:
+        #         layer_name = layer
+        #         child.register_forward_hook(get_activation(layer_name))
+        #         print(f"Loaded {model_name} with {len(layers)} layers")
+        #         layers.append(layer_name)
+        # return layers
+
+        register_hooks(model)
         print(f"Loaded {model_name} with {len(layers)} layers")
+       
         return layers
     else:
         print("Model loaded")

@@ -11,16 +11,17 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-stim_data = load_stim_file('./data/surf_stim.mat')
-# 78x3x224x224
-# (6 objects on 5 different surfaces)
-# for each object, 13 different variants 0 is base obj on base surface, next 4 triplets are of the following with different alt_surfs (base_obj on alt_surf, alt_obj on base_surf, alt_obj on alt_surf)
 
-n_object_sets = 6
-n_stim_per_set = 13
-n_triplets = 4 #tetrad = (base_obj on base_surf (0), base_obj on alt_surf, alt_obj on base_surf, alt_obj on alt_surf)
 
-def get_surface_invariance_index(model):
+def get_surface_invariance_index(model, save=False):
+    stim_data = load_stim_file('./data/surf_stim.mat')
+    # 78x3x224x224
+    # (6 objects on 5 different surfaces)
+    # for each object, 13 different variants 0 is base obj on base surface, next 4 triplets are of the following with different alt_surfs (base_obj on alt_surf, alt_obj on base_surf, alt_obj on alt_surf)
+
+    n_object_sets = 6
+    n_stim_per_set = 13
+    n_triplets = 4 #tetrad = (base_obj on base_surf (0), base_obj on alt_surf, alt_obj on base_surf, alt_obj on alt_surf)
     print("Extracting layerwise activations...")
     image_reps = []
     layers = load_model(model)
@@ -31,6 +32,7 @@ def get_surface_invariance_index(model):
     image_reps = np.array(image_reps)
 
     surface_invariance_index = []
+    surface_invariance_index_sem = []
     n_tetrads = np.zeros((len(layers), n_object_sets*n_triplets))
     print("Computing layerwise surface invariance index...")
     for layer_i, layer in enumerate(tqdm(layers)):
@@ -117,14 +119,19 @@ def get_surface_invariance_index(model):
         
         layer_si_score = np.nanmean(selected_layer_si)
         surface_invariance_index.append(layer_si_score)
-        
-        
-        
-    with open(f'./results/{model}_si.pkl', 'wb') as f:
-        pickle.dump(surface_invariance_index, f)
-    print("Saved surface_invariance index results for model: " + model)
 
+        layer_si_sem = np.nanstd(selected_layer_si)/np.sqrt(num_top_tetrads)
+        surface_invariance_index_sem.append(layer_si_sem)
+        
+        
+    if save: 
+        with open(f'./results/{model}_si.pkl', 'wb') as f:
+            pickle.dump(surface_invariance_index, f)
+        print("Saved surface_invariance index results for model: " + model)
 
-for model in ['vgg16', 'vit_base']:
-    get_surface_invariance_index(model)
+    return np.array(surface_invariance_index), np.array(surface_invariance_index_sem)
+
+if __name__ == "__main":
+    for model in ['vgg16', 'vit_base']:
+        get_surface_invariance_index(model, save=True)
     

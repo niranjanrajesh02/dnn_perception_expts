@@ -8,7 +8,27 @@ from _utils.network import load_model, get_model_output, get_accuracy
 import matplotlib.pyplot as plt
 import torch
 
-def get_incongruence_scores(model_name):
+def get_incongruence_scores(model_name, save=False):
+    stim_data_munneke = load_stim_file('./data/munneke_stim.mat') # grayscale 46 total = ((cong, incong) repeated 23 times)
+    stim_data_davenport = load_stim_file('./data/davenport_stim.mat') # color 34 = ((cong, incong) repeated 17 times)
+
+    # rearranging so that congruents (x23 or x17) followed by incongruents (x23 or x17)
+    stim_data_munneke = np.concatenate((stim_data_munneke[::2], stim_data_munneke[1::2]), axis=0)
+    stim_data_davenport = np.concatenate((stim_data_davenport[::2], stim_data_davenport[1::2]), axis=0)
+    stim_data = np.concatenate((stim_data_munneke, stim_data_davenport), axis=0)
+    # 23 cong_m, 23 incong_m, 17 cong_d, 17 incong_d 
+
+
+    # manually mapped labels
+    labels_munneke = [597, 521, 521, 436, 560, 672, 737, 463, 533, 533, 873, 563, 575, 620, 424, 442, 704, 704, 897, 832, 850, 858, 413, 
+                    597, 521, 521, 436, 560, 672, 737, 463, 533, 533, 873, 563, 575, 620, 424, 442, 704, 704, 897, 832, 850, 858, 413]
+    labels_davenport = [881, 484, 342, 752, 867, 408, 355, 99, 451, 813, 34, 355, 437, 353, 348, 346, 341, 
+                        881, 484, 342, 752, 867, 408, 355, 99, 451, 813, 34, 355, 437, 353, 348, 346, 341]
+
+    labels = np.concatenate((labels_munneke, labels_davenport), axis=0)
+    # decrement each label by 1 (because matlab indexing starts from 1)
+    labels = labels - 1
+
     load_model(model_name, with_hooks=False)
     out = get_model_output(stim_data)
 
@@ -47,35 +67,17 @@ def get_incongruence_scores(model_name):
         'i_top1_acc_mean': itop1_acc,
         'i_top1_acc_se': itop1_acc_se
     }
-    print(classification_metrics)
+    
     # save incongruence metrics
-    with open(f'./results/{model_name}.pkl', 'wb') as f:
-        pickle.dump(classification_metrics, f)
+    if save:
+        with open(f'./results/{model_name}.pkl', 'wb') as f:
+            pickle.dump(classification_metrics, f)
+        
+        print("Saved Classification Metrics!")
     
-    print("Saved Classification Metrics!")
-    
-    return
+    return classification_metrics
 
 
-stim_data_munneke = load_stim_file('./data/munneke_stim.mat') # grayscale 46 total = ((cong, incong) repeated 23 times)
-stim_data_davenport = load_stim_file('./data/davenport_stim.mat') # color 34 = ((cong, incong) repeated 17 times)
-
-# rearranging so that congruents (x23 or x17) followed by incongruents (x23 or x17)
-stim_data_munneke = np.concatenate((stim_data_munneke[::2], stim_data_munneke[1::2]), axis=0)
-stim_data_davenport = np.concatenate((stim_data_davenport[::2], stim_data_davenport[1::2]), axis=0)
-stim_data = np.concatenate((stim_data_munneke, stim_data_davenport), axis=0)
-# 23 cong_m, 23 incong_m, 17 cong_d, 17 incong_d 
-
-
-# manually mapped labels
-labels_munneke = [597, 521, 521, 436, 560, 672, 737, 463, 533, 533, 873, 563, 575, 620, 424, 442, 704, 704, 897, 832, 850, 858, 413, 
-                  597, 521, 521, 436, 560, 672, 737, 463, 533, 533, 873, 563, 575, 620, 424, 442, 704, 704, 897, 832, 850, 858, 413]
-labels_davenport = [881, 484, 342, 752, 867, 408, 355, 99, 451, 813, 34, 355, 437, 353, 348, 346, 341, 
-                    881, 484, 342, 752, 867, 408, 355, 99, 451, 813, 34, 355, 437, 353, 348, 346, 341]
-
-labels = np.concatenate((labels_munneke, labels_davenport), axis=0)
-# decrement each label by 1 (because matlab indexing starts from 1)
-labels = labels - 1
-
-for model in ['vgg16', 'vit_base']:
-    get_incongruence_scores(model)
+if __name__ == "__main__":
+    for model in ['vgg16', 'vit_base']:
+        get_incongruence_scores(model)

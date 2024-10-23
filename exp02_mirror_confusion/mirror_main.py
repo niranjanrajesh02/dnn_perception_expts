@@ -8,7 +8,15 @@ from _utils.data import load_stim_file
 from _utils.network import load_model, get_layerwise_activations
 
 
-def get_mirror_scores(model_name):
+def get_mirror_scores(model_name, save=False):
+    stim_data = load_stim_file('./data/mirror_stim.mat')
+    # Stim_Data arrangement: 100 stim, 100 mirror about y-axis, 100 mirror about x-axis
+
+    num_stim = 100
+    original_start = 0
+    y_flipped_start = 0 + num_stim
+    x_flipped_start = 0 + 2 * num_stim
+
     # load model
     # get num layers from model
     layers = load_model(model_name)
@@ -34,23 +42,20 @@ def get_mirror_scores(model_name):
             mirror_index = (dist_x - dist_y) / (dist_x + dist_y)
             layerwise_scores[stim_i, layer_i] = mirror_index
 
+    layerwise_scores_mean = np.nanmean(layerwise_scores, axis=0)
+    layerwise_sem = np.nanstd(layerwise_scores, axis=0) / np.sqrt(num_stim)
+
     # save layerwise scores
-    with open(f'./results/{model_name}.pkl', 'wb') as f:
-        pickle.dump(layerwise_scores, f)
-    print("Saved Layerwise Mirror Confusion Scores!")
-        
+    if save:
+        with open(f'./results/{model_name}.pkl', 'wb') as f:
+            pickle.dump(layerwise_scores, f)
+        print("Saved Layerwise Mirror Confusion Scores!")
+
+    return layerwise_scores_mean, layerwise_sem
 
 
 
-stim_data = load_stim_file('./data/mirror_stim.mat')
-# Stim_Data arrangement: 100 stim, 100 mirror about y-axis, 100 mirror about x-axis
-
-num_stim = 100
-original_start = 0
-y_flipped_start = 0 + num_stim
-x_flipped_start = 0 + 2 * num_stim
-
-
-accepted_models = ["vgg16", "vit_base"]
-for model in accepted_models:
-    get_mirror_scores(model)
+if __name__ == "__main__":
+    accepted_models = ["vgg16", "vit_base"]
+    for model in accepted_models:
+        get_mirror_scores(model, save=True)

@@ -6,11 +6,11 @@ from tqdm import tqdm
 from _utils.data import load_stim_file, save_stims
 from _utils.network import load_model, get_layerwise_activations
 
-stim_array = load_stim_file('./data/obj_parts_a_stim.mat', stim_var='img') 
-print(stim_array.shape)
 
 
-def get_part_matching_index(model):
+def get_part_matching_index(model, save=False):
+    stim_array = load_stim_file('./data/obj_parts_a_stim.mat', stim_var='img') 
+    print(stim_array.shape)
     layers = load_model(model)
     print("Extracting layerwise activations...")
     image_reps = []
@@ -19,7 +19,7 @@ def get_part_matching_index(model):
         image_reps.append(img_rep)
 
     layerwise_part_matching = []
-
+    layerwise_part_matching_sem = []
     print("Computing layerwise part matching...")
     for layer_i, layer in enumerate(tqdm(layers)):
         layerwise_reps = []
@@ -50,11 +50,15 @@ def get_part_matching_index(model):
         part_matching2 = (du - dn) / (du + dn)
 
         part_matching_index = (part_matching1 + part_matching2) / 2
+        part_matching_sem = np.std([part_matching1, part_matching2]) / np.sqrt(2)
         layerwise_part_matching.append(part_matching_index)
-    
-    with open(f'./results/{model}_part_matching.pkl', 'wb') as f:
-        pickle.dump(layerwise_part_matching, f)
-    print("Saved layerwise part matching")
+        layerwise_part_matching_sem.append(part_matching_sem)
+    if save:
+        with open(f'./results/{model}_part_matching.pkl', 'wb') as f:
+            pickle.dump(layerwise_part_matching, f)
+        print("Saved layerwise part matching")
+    return np.array(layerwise_part_matching), np.array(layerwise_part_matching_sem)
 
-for model in ['vgg16', 'vit_base']:
-    get_part_matching_index(model)
+if __name__ == "__main__":
+    for model in ['vgg16', 'vit_base']:
+        get_part_matching_index(model)

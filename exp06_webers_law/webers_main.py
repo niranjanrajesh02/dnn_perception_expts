@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 import scipy.io as sio
 from _utils.stats import nan_corrcoeff
 
-stim_data = load_stim_file('./data/weber_stim.mat') # 20x3x224x224 (distances correspond to i, i+10 for i=0...9)
 
-rel_distances, abs_distances =  sio.loadmat('./data/weber_distances.mat', squeeze_me=True, struct_as_record=True)['distances'].tolist()
-#10x1 arrays (distances correspond to pair of images (i, i+10) for i=0...9)
+def get_weber_law_correlation(model, save=False):
+    stim_data = load_stim_file('./data/weber_stim.mat') # 20x3x224x224 (distances correspond to i, i+10 for i=0...9)
 
+    rel_distances, abs_distances =  sio.loadmat('./data/weber_distances.mat', squeeze_me=True, struct_as_record=True)['distances'].tolist()
+    #10x1 arrays (distances correspond to pair of images (i, i+10) for i=0...9)
 
-def get_weber_law_correlation(model):
     # extract stim features
     print("Extracting layerwise activations...")
     image_reps = []
@@ -53,11 +53,14 @@ def get_weber_law_correlation(model):
     correlations_diff = np.array(r_relative) - np.array(r_absolute)
 
 
+    if save:
+        # save correlations
+        with open(f'./results/{model}_correlations.pkl', 'wb') as f:
+            pickle.dump(correlations_diff, f)
+        print("Saved Weber Law Correlations!")
+    
+    return correlations_diff, []
 
-    # save correlations
-    with open(f'./results/{model}_correlations.pkl', 'wb') as f:
-        pickle.dump(correlations_diff, f)
-    print("Saved Weber Law Correlations!")
-
-for model in ['vgg16', 'vit_base']:
-    get_weber_law_correlation(model)
+if __name__ == '__main__':
+    for model in ['vgg16', 'vit_base']:
+        get_weber_law_correlation(model)

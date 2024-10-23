@@ -1,3 +1,4 @@
 /*/representations
 *.pkl
 /*/images
+/*/__pycache__

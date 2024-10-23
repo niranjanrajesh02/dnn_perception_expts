@@ -9,26 +9,26 @@ from scipy.io import loadmat
 from sklearn.linear_model import LinearRegression
 from _utils.stats import nan_corrcoeff
 
-stim_array = load_stim_file('./data/obj_parts_b_stim.mat', stim_var='images') 
-# print(stim_array.shape) # 98x3x224x224
-# 2 sets of 49 images:
-# set 1: (unnatural part variation) the left and right part varies;  every 7 images, the left part varies. for each left part, there are 7 right part variations
-# set 2: (natural part variation) the top and bottom part varies;  every 7 images, the top part varies. for each top part, there are 7 bottom part variations
 
-matfile = loadmat('./data/data_matrices.mat')['data_matrices']
+def get_part_correlations(model, save=False):
+    stim_array = load_stim_file('./data/obj_parts_b_stim.mat', stim_var='images') 
+    # print(stim_array.shape) # 98x3x224x224
+    # 2 sets of 49 images:
+    # set 1: (unnatural part variation) the left and right part varies;  every 7 images, the left part varies. for each left part, there are 7 right part variations
+    # set 2: (natural part variation) the top and bottom part varies;  every 7 images, the top part varies. for each top part, there are 7 bottom part variations
 
-X_natural = matfile[0][0][0] # 492x43 design matrix for natural pairs (cols encode the different parts of both stims)
-X_unnatural = matfile[0][0][1] # 492x43 design matrix for unnatural pairs
-img_pair_inds = matfile[0][0][2] # 984x2 matrix where all possible pairs of stimuli indices are stored
-common_stim_pair_inds = matfile[0][0][3] #corresponding indices in above matrix where common stim pairs are stored (pairs that contain two of the 'common stim'- in both natural and unnatural)
-# used as test set
+    matfile = loadmat('./data/data_matrices.mat')['data_matrices']
+
+    X_natural = matfile[0][0][0] # 492x43 design matrix for natural pairs (cols encode the different parts of both stims)
+    X_unnatural = matfile[0][0][1] # 492x43 design matrix for unnatural pairs
+    img_pair_inds = matfile[0][0][2] # 984x2 matrix where all possible pairs of stimuli indices are stored
+    common_stim_pair_inds = matfile[0][0][3] #corresponding indices in above matrix where common stim pairs are stored (pairs that contain two of the 'common stim'- in both natural and unnatural)
+    # used as test set
 
 
-# subtract ind arrays by 1 for python indexing
-img_pair_inds = img_pair_inds - 1
-common_stim_pair_inds = common_stim_pair_inds - 1
-
-def get_part_correlations(model):
+    # subtract ind arrays by 1 for python indexing
+    img_pair_inds = img_pair_inds - 1
+    common_stim_pair_inds = common_stim_pair_inds - 1
 
     layers = load_model(model)
 
@@ -79,9 +79,11 @@ def get_part_correlations(model):
 
     natural_advantage = r_natural - r_unnatural
 
-    with open(f'./results/{model}_natural_advantage.pkl', 'wb') as f:
-        pickle.dump(natural_advantage, f)
+    if save:
+        with open(f'./results/{model}_natural_advantage.pkl', 'wb') as f:
+            pickle.dump(natural_advantage, f)
+    return np.array(natural_advantage)
 
-
-for model in ['vgg16', 'vit_base']:
-    get_part_correlations(model)
+if __name__ == "__main__":
+    for model in ['vgg16', 'vit_base']:
+        get_part_correlations(model)

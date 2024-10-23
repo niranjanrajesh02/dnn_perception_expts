@@ -6,7 +6,10 @@ from tqdm import tqdm
 from _utils.data import load_stim_file, save_stims
 from _utils.network import load_model, get_layerwise_activations
 import matplotlib.pyplot as plt
+import gc
 from _utils.stats import nan_corrcoeff, normalize
+import warnings
+warnings.filterwarnings("ignore")
 
 def sparseness(r, normalize=True):
     # input: r => n_units x n_stimuli
@@ -29,7 +32,7 @@ def sparseness(r, normalize=True):
 
 
 
-def morph_ref_sparseness_correlation(model):
+def morph_ref_sparseness_correlation(model, save=False):
     morph_stim_data = load_stim_file('./data/seltol.mat') #116,3,224,224
     morph_stim_data = morph_stim_data[:44] # 44,3,224,224 (only first 44 are relevant)
     n_stim = 44
@@ -60,13 +63,6 @@ def morph_ref_sparseness_correlation(model):
         van_units = np.where(np.sum(normalized_layerwise_reps, axis=0)>0)[0] # if one unit responds the same way to all stimuli, its' normalized value will be 0, so sum will also remain 0
         layerwise_van_reps = normalized_layerwise_reps[:, van_units]
 
-
-        # # find visually active units
-        # var_reps = np.var(layerwise_reps, axis=0)
-        # van_units = np.where(var_reps > 0.01)[0] # visually active neurons => their activations vary across stim
-        # layerwise_van_reps = layerwise_reps[:, van_units]
-        
-        # finding sparseness on ref set
         ref_sparseness = sparseness(layerwise_van_reps[ref_indices, :].T)[0] # find sparseness of all units across ref
         
         morph_sparseness = []
@@ -82,13 +78,14 @@ def morph_ref_sparseness_correlation(model):
         layerwise_sparseness_correlation.append(corr[0])
         
         
+    if save:
+        with open(f'./results/morph_ref_{model}.pkl', 'wb') as f:
+            pickle.dump(layerwise_sparseness_correlation, f)
+        print("Saved Layerwise Sparseness Correlation Scores!")
+    return layerwise_sparseness_correlation
 
-    with open(f'./results/morph_ref_{model}.pkl', 'wb') as f:
-        pickle.dump(layerwise_sparseness_correlation, f)
-    print("Saved Layerwise Sparseness Correlation Scores!")
 
-
-def shape_texture_sparseness_correlation(model):
+def shape_texture_sparseness_correlation(model, save=False):
     shapes_stim_data = load_stim_file('./data/shapes.mat') 
     textures_stim_data = load_stim_file('./data/textures.mat')
     n_stim = 50
@@ -96,63 +93,106 @@ def shape_texture_sparseness_correlation(model):
     textures_stim_data = textures_stim_data[:n_stim]
     stim = np.concatenate((shapes_stim_data, textures_stim_data), axis=0)
     
-    image_reps = []
     layers = load_model(model)
 
+    shape_reps = []
     # extract activations
-    print("Extracting layerwise activations...")
-    for stim_i in tqdm(range(n_stim*2)):
+    print("Extracting shapes layerwise activations...")
+    for stim_i in tqdm(range(n_stim)):
         img_rep = get_layerwise_activations(stim[stim_i])
-        image_reps.append(img_rep)
+        shape_reps.append(img_rep)
     
-    print("Computing layerwise sparseness correlation...")
-    layerwise_sparseness_correlation = []
+    
+  
+
+    layerwise_van_shape = []
+    
+ 
     for layer_i, layer in enumerate(tqdm(layers)):
         layerwise_reps = []
-        
-        for img_rep in image_reps:
+
+        for img_rep in shape_reps:
             layerwise_reps.append(img_rep[layer].flatten())
 
         layerwise_reps = np.array(layerwise_reps)
-        normalized_layerwise_reps = normalize(layerwise_reps)
-        normalized_layerwise_shape_reps = normalized_layerwise_reps[:n_stim]
-        normalized_layerwise_texture_reps = normalized_layerwise_reps[n_stim:]
+        normalized_shape_reps = normalize(layerwise_reps)
+        
+        van_units_shape = np.where(np.sum(normalized_shape_reps, axis=0)>0)[0]
+        layerwise_van_shape.append(van_units_shape)
+        
+ 
+    del shape_reps
+    gc.collect()
 
+    texture_reps = []
+    print("Extracting textures layerwise activations...")
+    for stim_i in tqdm(range(n_stim, n_stim*2)):
+        img_rep = get_layerwise_activations(stim[stim_i])
+        texture_reps.append(img_rep)
     
+    layerwise_van_texture = []
+   
+    for layer_i, layer in enumerate(tqdm(layers)):
+        layerwise_reps = []
+        
+        for img_rep in texture_reps:
+            layerwise_reps.append(img_rep[layer].flatten())
+        
 
-        van_units_shape = np.where(np.sum(normalized_layerwise_shape_reps, axis=0)>0)[0]
-        van_units_texture = np.where(np.sum(normalized_layerwise_texture_reps, axis=0)>0)[0]
+        layerwise_reps = np.array(layerwise_reps)
+        normalized_texture_reps = normalize(layerwise_reps)
+        
 
+        van_units_texture = np.where(np.sum(normalized_texture_reps, axis=0)>0)[0]
+        layerwise_van_texture.append(van_units_texture)
+        
+ 
+    del texture_reps
+    gc.collect()
+
+    layerwise_sparseness_correlation = []
+    print("Computing layerwise sparseness correlation...")
+    for layer_i, layer in enumerate(tqdm(layers)):
+        van_units_shape = layerwise_van_shape[layer_i]
+        van_units_texture = layerwise_van_texture[layer_i]
         van_units_both = np.intersect1d(van_units_shape, van_units_texture)
         
+        layer_reps = []
+        for img_i in range(n_stim*2):
+            layer_reps.append(get_layerwise_activations(stim[img_i])[layer].flatten())
+        shape_reps = layer_reps[:n_stim]
+        texture_reps = layer_reps[n_stim:]
 
-        # find visually active units for both sets
-        # var_reps_shape = np.var(layerwise_shape_reps, axis=0)
-        # var_reps_texture = np.var(layerwise_texture_reps, axis=0)
-        # van_units_shape = np.where(var_reps_shape > 0.01)[0] # visually active neurons => their activations vary across stim
-        # van_units_texture = np.where(var_reps_texture > 0.01)[0] # visually active neurons => their activations vary across stim
-        # # find units selective for both shape and texture
-        # van_units_both = np.intersect1d(van_units_shape, van_units_texture)
-        
-        layerwise_van_reps_shape = normalized_layerwise_shape_reps[:, van_units_both]
-        layerwise_van_reps_texture = normalized_layerwise_texture_reps[:, van_units_both]
+        normalized_shape_reps = normalize(np.array(shape_reps))
+        normalized_texture_reps = normalize(np.array(texture_reps))
+       
         
         # finding sparseness 
-        shape_sparseness = sparseness(layerwise_van_reps_shape.T)[0] 
-        texture_sparseness = sparseness(layerwise_van_reps_texture.T)[0]
+        shape_sparseness = sparseness(normalized_shape_reps.T)[0] 
+        texture_sparseness = sparseness(normalized_texture_reps.T)[0]
 
         corr = nan_corrcoeff(shape_sparseness, texture_sparseness)
         layerwise_sparseness_correlation.append(corr[0])
         
-    
-    with open(f'./results/shape_texture_{model}.pkl', 'wb') as f:
-        pickle.dump(layerwise_sparseness_correlation, f)
-    print("Saved Layerwise Sparseness Correlation Scores!")
+    if save:
+        with open(f'./results/shape_texture_{model}.pkl', 'wb') as f:
+            pickle.dump(layerwise_sparseness_correlation, f)
+        print("Saved Layerwise Sparseness Correlation Scores!")
+    print(np.array(layerwise_sparseness_correlation).shape)
+    return layerwise_sparseness_correlation
 
-for model in ['vgg16', 'vit_base']:
-    morph_ref_sparseness_correlation(model)
-    shape_texture_sparseness_correlation(model)
+
+def get_corr_sparse_scores(model_name):
+    print("Exp05a: Morphlinear Correlated Sparseness")
+    morph_scores = morph_ref_sparseness_correlation(model_name)
+    print("Exp05b: Shape-Texture Correlated Sparseness")
+    shape_scores = shape_texture_sparseness_correlation(model_name)
+    corr_sparse_scores = [morph_scores, shape_scores]
+    return np.array(corr_sparse_scores), [[],[]] # no error
+
+if __name__ == '__main__':
+    
+    morph_ref_sparseness_correlation('vgg16', save=True)
+    shape_texture_sparseness_correlation('vgg16', save=True)
 # might need to run multiple times to get stable results
 
-# morph_ref_sparseness_correlation('vgg16')
-# shape_texture_sparseness_correlation('vgg16')

@@ -10,23 +10,24 @@ from _utils.stats import nan_corrcoeff, normalize
 import warnings 
 warnings.filterwarnings("ignore")
 
-stim_data = load_stim_file('./data/relSize.mat')
-# 96x3x224x224
-n_tetrad_groups = 24
-# each group has 4 imgs with 2 parts each of varying sizes
-# img1 part1: size 1, part2: size 1 
-# img2 part1: size 1, part2: size 2 
-# img3 part1: size 2, part2: size 1 
-# img4 part1: size 2, part2: size 2 
-
-# img1,img4 => congruent pair; img2,img3 => incongruent pair
 
 
 
 
 # extract stim features
 
-def get_relative_size_index(model):
+def get_relative_size_index(model, save=False):
+    stim_data = load_stim_file('./data/relSize.mat')
+    # 96x3x224x224
+    n_tetrad_groups = 24
+    # each group has 4 imgs with 2 parts each of varying sizes
+    # img1 part1: size 1, part2: size 1 
+    # img2 part1: size 1, part2: size 2 
+    # img3 part1: size 2, part2: size 1 
+    # img4 part1: size 2, part2: size 2 
+
+    # img1,img4 => congruent pair; img2,img3 => incongruent pair
+
     print("Extracting layerwise activations...")
     image_reps = []
     layers = load_model(model)
@@ -37,6 +38,7 @@ def get_relative_size_index(model):
     image_reps = np.array(image_reps)
 
     relative_size_index = []
+    relative_size_index_sem = []
     n_tetrads = np.zeros((len(layers), n_tetrad_groups))
     print("Computing layerwise relative size index...")
     for layer_i, layer in enumerate(tqdm(layers)):
@@ -103,23 +105,25 @@ def get_relative_size_index(model):
         # sorted_layer_re = np.sort(layer_re)[::-1]
         sorted_layer_inds = np.argsort(layer_re)[::-1]
 
-    
-
         total_active_tetrads = np.sum(n_tetrads[layer_i])
 
         num_top_tetrads = int(np.floor(0.07*total_active_tetrads))
-
 
         selected_layer_rsi = layer_rsi[sorted_layer_inds[0:num_top_tetrads]]
         
         layer_rsi_score = np.nanmean(selected_layer_rsi)
         relative_size_index.append(layer_rsi_score)
-        
-        
-    with open(f'./results/{model}_rsi.pkl', 'wb') as f:
-        pickle.dump(relative_size_index, f)
-    print("Saved relative size index results for model: " + model)
 
+        layer_rsi_sem = np.nanstd(selected_layer_rsi) / np.sqrt(num_top_tetrads)
+        relative_size_index_sem.append(layer_rsi_sem)
 
-for model in ['vgg16', 'vit_base']:
-    get_relative_size_index(model)
+        
+    if save:   
+        with open(f'./results/{model}_rsi.pkl', 'wb') as f:
+            pickle.dump(relative_size_index, f)
+        print("Saved relative size index results for model: " + model)
+    return np.array(relative_size_index), np.array(relative_size_index_sem)
+
+if __name__ == '__main__':
+    for model in ['vgg16', 'vit_base']:
+        get_relative_size_index(model)

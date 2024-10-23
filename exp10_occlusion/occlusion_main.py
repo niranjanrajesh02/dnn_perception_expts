@@ -6,12 +6,12 @@ from tqdm import tqdm
 from _utils.data import load_stim_file, save_stims
 from _utils.network import load_model, get_layerwise_activations
 
-stim_array = load_stim_file('./data/occlusion_set.mat') #14,4,224,224
-# ordering is a little arbitrary, save these images using _utils.data.save_stims to visualise the indices of the images
 
 
-def get_occlusion_scores(model):
+def get_occlusion_scores(model, save=False):
+    stim_array = load_stim_file('./data/occlusion_set.mat') #14,4,224,224
 
+    # ordering is a little arbitrary, save these images using _utils.data.save_stims to visualise the indices of the images
     layers = load_model(model)
     img_reps = []
     print("Extracting layerwise activations...")
@@ -21,7 +21,9 @@ def get_occlusion_scores(model):
     img_reps = np.array(img_reps)
 
     basic_occlusion_scores = []
+    basic_occlusion_sem = []
     depth_ordering_occlusion_scores = []
+    depth_ordering_occlusion_sem = []
 
     print("Computing layerwise occlusion scores...")
     for layer_i, layer in enumerate(tqdm(layers)):
@@ -45,6 +47,9 @@ def get_occlusion_scores(model):
         
         layer_basic_occlusion_score = np.mean(layer_basic_occlusion)
         basic_occlusion_scores.append(layer_basic_occlusion_score)
+
+        layer_basic_occlusion_sem = np.std(layer_basic_occlusion) / np.sqrt(len(layer_basic_occlusion))
+        basic_occlusion_sem.append(layer_basic_occlusion_sem)
         
         # depth occlusion
         layer_depth_occlusion = []
@@ -92,16 +97,27 @@ def get_occlusion_scores(model):
         layer_depth_occlusion.append(depth_occlusion_index)
 
         
-        layer_depth_occlusion_score = np.mean(layer_depth_occlusion)
+        layer_depth_occlusion_score = np.nanmean(layer_depth_occlusion)
         depth_ordering_occlusion_scores.append(layer_depth_occlusion_score)
 
-    occlusion_scores = {'basic': basic_occlusion_scores, 'depth': depth_ordering_occlusion_scores}
+        layer_depth_occlusion_sem = np.nanstd(layer_depth_occlusion) / np.sqrt(len(layer_depth_occlusion))
+        depth_ordering_occlusion_sem.append(layer_depth_occlusion_sem)
 
-    with open(f'./results/{model}_occlusion_scores.pkl', 'wb') as f:
-        pickle.dump(occlusion_scores, f)
-    print("Saved Occlusion Scores!")
 
-for model in ['vgg16', 'vit_base']:
-    get_occlusion_scores(model)
+
+    occlusion_scores = [basic_occlusion_scores, depth_ordering_occlusion_scores]
+    occlusion_sem = [basic_occlusion_sem, depth_ordering_occlusion_sem]
+    
+    if save:
+        with open(f'./results/{model}_occlusion_scores.pkl', 'wb') as f:
+            pickle.dump(occlusion_scores, f)
+        print("Saved Occlusion Scores!")
+        
+
+    return np.array(occlusion_scores), np.array(occlusion_sem)
+
+if __name__ == "__main__":
+    for model in ['vgg16', 'vit_base']:
+        get_occlusion_scores(model)
    
 
