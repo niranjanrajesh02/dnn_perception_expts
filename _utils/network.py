@@ -17,6 +17,7 @@ activations = {}
 # activations = []
 def get_activation(name):
     def hook(model, input, output):
+
         activations[name] = np.squeeze(output.cpu().detach()) #squeeze-removes batchdim, cpu-moves to cpu, detach-removes gradient
     return hook
 
@@ -26,17 +27,16 @@ def register_hooks(module, parent_name=""):
     for name, child in module.named_children():
         # Create the full name for the layer
         full_name = f'{parent_name}_{name}' if parent_name else name
+        
         if isinstance(child, (nn.Dropout)):
             # print(f"Skipping layer: {full_name} (Dropout)")
             continue
         # If the child module has its own submodules, recurse
         if len(list(child.children())) > 0:
-            register_hooks(child, full_name)  # Recursive call
+            register_hooks(child, full_name)  
         else:
-            # Register the hook on the leaf module (layer)
             child.register_forward_hook(get_activation(full_name))
             layers.append(full_name)
-            # print(f"Hook registered for layer: {full_name}")
 
 
 # loads model and registers hooks
@@ -68,6 +68,7 @@ def load_model(model_name, with_hooks=True):
     #  Supervised ViTs
     elif model_name == "vit_base":
         model = torchvision.models.vit_b_16(weights="DEFAULT").eval()
+        # model = timm.create_model('vit_base_patch16_224.orig_in21k_ft_in1k', pretrained=True).eval()
     elif model_name == "vit_large":
         model = torchvision.models.vit_l_16(weights="DEFAULT").eval()
     elif model_name == "swin_base":
@@ -83,32 +84,24 @@ def load_model(model_name, with_hooks=True):
     if torch.cuda.is_available():
         model.cuda()
     
-    # layers = []
 
     if with_hooks:
-        # for layer, child in model.named_children():
-        #     if len(list(child.children())) > 0:
-        #             for layer_c, child_c in child.named_children():
-        #                     layer_name = f'{layer}_{layer_c}'
-        #                     if len(list(child_c.children())) > 0:
-        #                         for layer_cc, child_cc in child_c.named_children():
-        #                             layer_name = f'{layer}_{layer_c}_{layer_cc}'
-        #                             child_cc.register_forward_hook(get_activation(layer_name))
-        #                             layers.append(layer_name)
-        #                     else:
-        #                         child_c.register_forward_hook(get_activation(layer_name))
-        #                         layers.append(layer_name)
-        #     else:
-        #         layer_name = layer
-        #         child.register_forward_hook(get_activation(layer_name))
-        #         print(f"Loaded {model_name} with {len(layers)} layers")
-        #         layers.append(layer_name)
-        # return layers
 
         register_hooks(model)
+
+        # sample input into model to check which layers are getting activated
+        img = torch.randn(1, 3, 224, 224).cuda()
+        out = model(img)
+        global activations
+        # check if activations keys match with layers
+        if len(activations) != len(layers):
+            # remove layers if not present in activations keys
+            layers = [layer for layer in layers if layer in activations.keys()]
+            
+        activations = {}
         print(f"Loaded {model_name} with {len(layers)} layers")
-       
         return layers
+        
     else:
         print("Model loaded")
         return
@@ -143,10 +136,7 @@ def get_model_output(imgs):
     return out
 
 
-# main function
-def get_representations(net, imgs, save=False):
-    
-    reps = extract_layerwise_features(net, imgs)
+
 
 
 # accuracy calculation

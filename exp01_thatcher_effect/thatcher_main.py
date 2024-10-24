@@ -15,9 +15,12 @@ def get_thatcher_scores(model_name, save=False):
     upright_start, upright_thatch_start = 0, 20
     inverted_start, inverted_thatch_start = 40, 60
     layers = load_model(model_name)
+    
+
+    
     num_layers = len(layers)
     layerwise_scores = np.zeros((num_stim, num_layers))
-
+    
     for stim_i in tqdm(range(num_stim)):
         upright_i = upright_start + stim_i
         inverted_i = inverted_start + stim_i
@@ -29,7 +32,7 @@ def get_thatcher_scores(model_name, save=False):
         inverted_reps = get_layerwise_activations(stim_data[inverted_i])
         upright_thatch_reps = get_layerwise_activations(stim_data[upright_thatch_i])
         inverted_thatch_reps = get_layerwise_activations(stim_data[inverted_thatch_i])
-
+        
         
         # get layerwise scores
         for layer_i in range(num_layers):

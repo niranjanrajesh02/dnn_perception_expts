@@ -36,7 +36,7 @@ experiments = {
 
 # cli args
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str)
+parser.add_argument('--model', type=str, default='vit_base')
 args = parser.parse_args()
 
 
