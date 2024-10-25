@@ -2,3 +2,5 @@
 *.pkl
 /*/images
 /*/__pycache__
+/models
+/benchmark/plots

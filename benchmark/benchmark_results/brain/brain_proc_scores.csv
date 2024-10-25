@@ -1,0 +1,18 @@
+,scores,reference
+1,0.252240717,"Bartlet and Searcy, 1993"
+2,0.057391876,"Rollenhagen & Olson, 2000"
+3,"[{'davenport_c_acc_mean': 0.774, 'davenport_i_acc_mean': 0.560, 'munneke_c_acc_mean': 0.630, 'munneke_i_acc_mean': 0.497}]","['Davenport et. al. 2004', 'Munneke et. al. 2013']"
+4,0.5,Zoccolan et. al. 2005
+5,0.33,Zoccolan et. al. 2005
+6,0.73,"Zhivago and Arun, 2016"
+7,0.68,"Zhivago and Arun, 2016"
+8,0.1,"Pramod and Arun, 2014"
+9,0.39,Vighneshvel & Arun 2015
+10,0.55,Ratan Murty & Arun 2016
+11,0.4,"Enns & Rensink,1990"
+12,0.76,"Enns & Rensink,1991"
+13,0.67,Rensink & Enns 1998
+14,0.6,Rensink & Enns 1998
+15,0.071,"Xu and Singh, 2002"
+16,0.16,"Pramod and Arun, 2016"
+17,0.0975,"Jacob and Arun, 2019"
