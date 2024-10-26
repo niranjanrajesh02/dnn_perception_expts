@@ -11,7 +11,7 @@ from _utils.stats import nan_corrcoeff
 
 
 def get_part_correlations(model, save=False):
-    stim_array = load_stim_file('./data/obj_parts_b_stim.mat', stim_var='images') 
+    stim_array = load_stim_file('./data/obj_parts_b_stim.mat', stim_var='images', model=model) 
     # print(stim_array.shape) # 98x3x224x224
     # 2 sets of 49 images:
     # set 1: (unnatural part variation) the left and right part varies;  every 7 images, the left part varies. for each left part, there are 7 right part variations

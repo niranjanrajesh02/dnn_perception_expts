@@ -11,7 +11,7 @@ from _utils.stats import nan_corrcoeff
 
 
 def get_weber_law_correlation(model, save=False):
-    stim_data = load_stim_file('./data/weber_stim.mat') # 20x3x224x224 (distances correspond to i, i+10 for i=0...9)
+    stim_data = load_stim_file('./data/weber_stim.mat',model=model) # 20x3x224x224 (distances correspond to i, i+10 for i=0...9)
 
     rel_distances, abs_distances =  sio.loadmat('./data/weber_distances.mat', squeeze_me=True, struct_as_record=True)['distances'].tolist()
     #10x1 arrays (distances correspond to pair of images (i, i+10) for i=0...9)

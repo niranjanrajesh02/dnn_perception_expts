@@ -9,7 +9,7 @@ from _utils.network import load_model, get_layerwise_activations
 
 
 def get_part_matching_index(model, save=False):
-    stim_array = load_stim_file('./data/obj_parts_a_stim.mat', stim_var='img') 
+    stim_array = load_stim_file('./data/obj_parts_a_stim.mat', stim_var='img', model=model) 
     print(stim_array.shape)
     layers = load_model(model)
     print("Extracting layerwise activations...")

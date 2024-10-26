@@ -16,7 +16,7 @@ from sklearn.metrics import pairwise_distances
 
 # # extract stim features
 def get_global_advantage(model, save=False):
-    stim_array = load_stim_file('./data/GL.mat')
+    stim_array = load_stim_file('./data/GL.mat',model=model)
     # print(stim_array.shape)# 49x3x224x224
 
     num_shapes = 7 # ( 7 shapes with same local shape but varying global shape ) x 7 times for a local shape

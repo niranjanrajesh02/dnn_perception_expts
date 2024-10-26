@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore")
 
 
 def get_surface_invariance_index(model, save=False):
-    stim_data = load_stim_file('./data/surf_stim.mat')
+    stim_data = load_stim_file('./data/surf_stim.mat',model=model)
     # 78x3x224x224
     # (6 objects on 5 different surfaces)
     # for each object, 13 different variants 0 is base obj on base surface, next 4 triplets are of the following with different alt_surfs (base_obj on alt_surf, alt_obj on base_surf, alt_obj on alt_surf)

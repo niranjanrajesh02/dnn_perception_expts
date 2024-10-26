@@ -9,7 +9,7 @@ from _utils.network import load_model, get_layerwise_activations
 
 
 def get_occlusion_scores(model, save=False):
-    stim_array = load_stim_file('./data/occlusion_set.mat') #14,4,224,224
+    stim_array = load_stim_file('./data/occlusion_set.mat',model=model) #14,4,224,224
 
     # ordering is a little arbitrary, save these images using _utils.data.save_stims to visualise the indices of the images
     layers = load_model(model)

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 def get_3d_scores(model, save=False):
 
-    stim_array = load_stim_file('./data/3d.mat')
+    stim_array = load_stim_file('./data/3d.mat',model=model)
     
     # 12 stim (2 sets of 6 stim)
     # in one set, img0 and img1 are 2d pair, img2 img 3 are 3d pair, img4 and img5 are 2d pair 

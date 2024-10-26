@@ -34,7 +34,7 @@ def find_normalization_combined(Fcombined, Fsum):
 
 
 def get_div_norm_scores(model, save=False):
-    stim_data = load_stim_file('./data/div_norm_stim.mat')
+    stim_data = load_stim_file('./data/div_norm_stim.mat', model=model)
     # print(stim_data.shape) # images: (267, 3, 224, 224)
     # 49 objects
     # singleton => in top, mid or bottom => 3x49 = 147

@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore")
 # extract stim features
 
 def get_relative_size_index(model, save=False):
-    stim_data = load_stim_file('./data/relSize.mat')
+    stim_data = load_stim_file('./data/relSize.mat',model=model)
     # 96x3x224x224
     n_tetrad_groups = 24
     # each group has 4 imgs with 2 parts each of varying sizes

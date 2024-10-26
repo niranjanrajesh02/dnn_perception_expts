@@ -8,7 +8,7 @@ from _utils.network import load_model, get_layerwise_activations
 import os
 
 def get_thatcher_scores(model_name, save=False):
-    stim_data = load_stim_file('./data/thatcher_faces.mat')
+    stim_data = load_stim_file('./data/thatcher_faces.mat', model=model_name)
     # Stim_Data arrangement: 20 upright, 20 thatcherized, 20 inverted, 20 thatcherized inverted
 
     num_stim = 20

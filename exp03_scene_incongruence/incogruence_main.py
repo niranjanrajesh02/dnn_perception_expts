@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import torch
 
 def get_incongruence_scores(model_name, save=False):
-    stim_data_munneke = load_stim_file('./data/munneke_stim.mat') # grayscale 46 total = ((cong, incong) repeated 23 times)
-    stim_data_davenport = load_stim_file('./data/davenport_stim.mat') # color 34 = ((cong, incong) repeated 17 times)
+    stim_data_munneke = load_stim_file('./data/munneke_stim.mat', model=model_name) # grayscale 46 total = ((cong, incong) repeated 23 times)
+    stim_data_davenport = load_stim_file('./data/davenport_stim.mat', model=model_name) # color 34 = ((cong, incong) repeated 17 times)
 
     # rearranging so that congruents (x23 or x17) followed by incongruents (x23 or x17)
     stim_data_munneke = np.concatenate((stim_data_munneke[::2], stim_data_munneke[1::2]), axis=0)

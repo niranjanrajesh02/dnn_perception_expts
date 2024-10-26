@@ -33,7 +33,7 @@ def sparseness(r, normalize=True):
 
 
 def morph_ref_sparseness_correlation(model, save=False):
-    morph_stim_data = load_stim_file('./data/seltol.mat') #116,3,224,224
+    morph_stim_data = load_stim_file('./data/seltol.mat',model=model) #116,3,224,224
     morph_stim_data = morph_stim_data[:44] # 44,3,224,224 (only first 44 are relevant)
     n_stim = 44
     n_morphs = 4
@@ -86,8 +86,8 @@ def morph_ref_sparseness_correlation(model, save=False):
 
 
 def shape_texture_sparseness_correlation(model, save=False):
-    shapes_stim_data = load_stim_file('./data/shapes.mat') 
-    textures_stim_data = load_stim_file('./data/textures.mat')
+    shapes_stim_data = load_stim_file('./data/shapes.mat',model=model) 
+    textures_stim_data = load_stim_file('./data/textures.mat',model=model)
     n_stim = 50
     shapes_stim_data = shapes_stim_data[:n_stim]
     textures_stim_data = textures_stim_data[:n_stim]

@@ -8,7 +8,7 @@ import h5py
 from tqdm import tqdm
 
 # loads stim file as an array of 3x224x224 images
-def load_stim_file(path, stim_var='stim'):
+def load_stim_file(path, stim_var='stim', model='vgg16'):
     mirror_data = sio.loadmat(path, squeeze_me=True, struct_as_record=True)
     stim_data = []
     print("Loading stimuli ...")
@@ -30,9 +30,13 @@ def load_stim_file(path, stim_var='stim'):
         else:
             padding_transform = transforms.Pad((0, 0))
 
+        img_size = 224
+        if 'face_vit' in model:
+            img_size = 224
+            
         transform = transforms.Compose([
             padding_transform,
-            transforms.Resize((224, 224)),  # Resize to 224x224
+            transforms.Resize((img_size, img_size)),  # Resize to 224x224
             transforms.ToTensor()
         ])
 

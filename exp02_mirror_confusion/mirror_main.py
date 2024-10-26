@@ -9,7 +9,7 @@ from _utils.network import load_model, get_layerwise_activations
 
 
 def get_mirror_scores(model_name, save=False):
-    stim_data = load_stim_file('./data/mirror_stim.mat')
+    stim_data = load_stim_file('./data/mirror_stim.mat', model=model_name)
     # Stim_Data arrangement: 100 stim, 100 mirror about y-axis, 100 mirror about x-axis
 
     num_stim = 100
