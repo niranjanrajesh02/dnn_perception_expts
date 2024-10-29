@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
-import ast 
 
 cnn_list = ['vgg16', 'vgg19', 'resnet50', 'resnet101', 'inception_v3', 'inception_v4', 'convnext_base', 'convnext_large']
 vit_list = ['vit_base', 'vit_large', 'swin_base', 'swin_large', 'deit_base', 'deit_large']
@@ -34,7 +32,7 @@ def plot_model_layerwise_scores(expt):
 
             model_layerwise_score = dict(model_scores_df.iloc[expt-1])
             # remove the first two columns after reading
-            model_layerwise_score = {key: value for key, value in model_layerwise_score.items() if key != 'expt_name' and key != 'expt_y_label'}
+            model_layerwise_score = {key: value for key, value in model_layerwise_score.items() if key != 'expt_name' and key != 'expt_y_label'} #exclude first two columns
 
             # string vals to float unless they are nans
             model_layerwise_score = {k: float(v) for k, v in model_layerwise_score.items()}
@@ -85,7 +83,7 @@ def plot_model_layerwise_scores(expt):
         plt.savefig(f'{plot_save_path}/{expt_code}_{model_family}.png')
         plt.close()
         
-expt=4 #1-17
+
 for expt in range(1,18):
     if expt != 3:
         plot_model_layerwise_scores(expt)

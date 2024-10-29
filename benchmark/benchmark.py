@@ -40,7 +40,8 @@ parser.add_argument('--model', type=str, default='vit_base')
 args = parser.parse_args()
 
 
-models_to_run = [args.model]
+# models_to_run = [args.model]
+models_to_run = ['densenet161','vit_base' ]
 results_path = './benchmark_results'
 
 for model_name in models_to_run:

@@ -30,8 +30,14 @@ def get_incongruence_scores(model_name, save=False):
     labels = labels - 1
 
     load_model(model_name, with_hooks=False)
-    out = get_model_output(stim_data)
-
+    out = get_model_output(stim_data) #
+    # print(type(out))
+    if type(out) != torch.Tensor:
+        out = out.logits
+        print(out.shape)
+        return
+    # print(out.shape)
+    
     top5_preds = torch.topk(out, 5, dim=1).indices.cpu().numpy()
     top1_preds = torch.topk(out, 1, dim=1).indices.cpu().numpy()
 
@@ -67,8 +73,9 @@ def get_incongruence_scores(model_name, save=False):
         'i_top1_acc_mean': itop1_acc,
         'i_top1_acc_se': itop1_acc_se
     }
-    
+    # print(classification_metrics)
     # save incongruence metrics
+   
     if save:
         with open(f'./results/{model_name}.pkl', 'wb') as f:
             pickle.dump(classification_metrics, f)
@@ -79,5 +86,8 @@ def get_incongruence_scores(model_name, save=False):
 
 
 if __name__ == "__main__":
-    for model in ['vgg16', 'vit_base']:
-        get_incongruence_scores(model)
+    
+    get_incongruence_scores('vit_base')
+    get_incongruence_scores('vit_base_dino')
+
+
