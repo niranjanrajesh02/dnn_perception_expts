@@ -7,7 +7,13 @@ benchmark_results_path = '../benchmark_results'
 
 cnn_list = ['vgg16', 'vgg19', 'resnet50', 'resnet101', 'inception_v3', 'inception_v4', 'convnext_base', 'convnext_large']
 vit_list = ['vit_base', 'vit_large', 'swin_base', 'swin_large', 'deit_base', 'deit_large']
-expt_names = ["Exp01: Thatcher Index", "Exp02: Mirror Confusion", "Exp03: Scene Incongruence",
+supervised_list = ['resnet50', 'vit_base', 'resnet50_at', 'vit_base_at']
+self_supervised_list = ['resnet50_moco', 'vit_base_moco', 'resnet50_dino', 'vit_base_dino']
+object_models = ["resnet50", "densenet161", "vit_base"]
+face_models = ["facenet_casia", "facenet_vggface2", "face_vit"]
+scene_models = [ "resnet50_places365", "densenet161_places365", "vit_base_places365"]
+
+expt_names = ["Exp01: Thatcher Faces", "Exp02: Mirror Confusion", "Exp03: Scene Incongruence",
             "Exp04a: Multiple Object Normalisation (Pairs)", "Exp04b: Multiple Object Normalisation (Triplets)",
             "Exp05a: Correlated Sparseness (Reference set vs Morphlines)","Exp05b: Correlated Sparseness (Shapes vs Textures)",
             "Exp06: Weber's Law", "Exp07: Relative Size Encoding", "Exp08: Surface Invariance", 
@@ -15,6 +21,7 @@ expt_names = ["Exp01: Thatcher Index", "Exp02: Mirror Confusion", "Exp03: Scene 
             "Exp10a: Occlusion Processing (Basic)", "Exp10b: Occlusion Processing (Depth Ordering)",
             "Exp11a: Object Parts Processing (Part Matching)", "Exp11b: Object Parts Processing (Part Correlations)",
             "Exp12: Global-Local Shape Processing"]
+
 expt_y_labels = ["Thatcher Index", "Mirror Confusion Index", "",
                 "Estimated Slope", "Estimated Slope",
                 "Sparseness Correlation", "Sparseness Correlation",
@@ -25,7 +32,7 @@ expt_y_labels = ["Thatcher Index", "Mirror Confusion Index", "",
                 "Global Advantage Index"]
 
 double_expts = [4,5,9,10,11]
-model_list = cnn_list + vit_list
+model_list = face_models + object_models + scene_models
 
 for model in model_list:
     model_results_path = f'{benchmark_results_path}/{model}'
@@ -40,7 +47,9 @@ for model in model_list:
     new_model_scores_df = pd.DataFrame(index=np.arange(1,total_expts+1), columns=model_scores_df.columns)
 
     new_index = 1
+    print(model)
     for exp_i in model_scores_df.index:
+        print(exp_i)
         if exp_i not in double_expts and exp_i != 3:
             scores = dict(model_scores_df.loc[exp_i])
             scores_i = {k: float(v) for k, v in scores.items()}

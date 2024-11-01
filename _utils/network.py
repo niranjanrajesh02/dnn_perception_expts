@@ -55,20 +55,42 @@ def print_model():
     global model
     print(model)
 
-# ! only models from arch comparison are implemented
+
 def get_model_feature_layer(model_name):
-    if 'vgg' in model_name:
+
+    if 'vgg' in model_name and 'face' not in model_name:
         return 'head_global_pool_flatten'
     
+    elif 'resnet50_dino' in model_name or 'resnet50_moco' in model_name or 'resnet50_places365' in model_name:
+        return 'avgpool'
+
     elif 'resnet' in model_name :
         return 'global_pool_flatten'
     
     elif 'inception' in model_name:
         return 'global_pool_flatten'
 
+    elif 'densenet161_places365' in model_name:
+        return 'features_norm5'
+    elif 'densenet' in model_name:
+        return 'global_pool_flatten'
+    
     elif 'convnext' in model_name:
         return 'head_pre_logits'
+    
+    elif 'face_vit' in model_name:
+        return 'to_latent'
+    elif 'facenet' in model_name:
+        return 'last_linear'
 
+    elif 'vit_base_at' in model_name:
+        return 'fc_norm'
+    elif 'vit_base_dino' in model_name:
+        return 'encoder_norm'
+    elif 'vit_base_moco' in model_name:
+        return 'fc_norm'
+    elif 'vit_base_places365' in model_name:
+        return 'vit_layernorm'
     elif 'vit' in model_name:
         return 'encoder_ln'
     
@@ -77,7 +99,8 @@ def get_model_feature_layer(model_name):
     
     elif 'deit' in model_name:
         return 'fc_norm'
-
+    
+    
     else:
         raise NotImplementedError 
 
@@ -88,7 +111,7 @@ def load_model(model_name, with_hooks=True):
                           "resnet50_at", "vit_base_at", "resnet50_moco", "vit_base_moco", "resnet50_dino", "vit_base_dino",                                        #training variations
                           "facenet_casia", "facenet_vggface2", "face_vit",                                                                                         #face models
                           "resnet50_places365", "densenet161_places365", "vit_base_places365",
-                           "resnet50_linear_moco", "vit_base_linear_moco" ]
+                           ]
     global model
     global layers
     layers = []

@@ -130,9 +130,8 @@ def get_div_norm_scores(model, save=False):
 
         # find visually active neurons
         visually_active_neurons_per_layer[layer_name] = np.where((top_vars[layer_i] > var_threshold) & (mid_vars[layer_i] > var_threshold) & (bot_vars[layer_i] > var_threshold))[0]
-    del reps_bot
-    gc.collect()
-    
+        
+
 
     active_layers = []
     active_layer_inds = []
@@ -142,12 +141,13 @@ def get_div_norm_scores(model, save=False):
             active_layer_inds.append(layer_i)
 
     model_layers = [active_layers, active_layer_inds]
-
+ 
     # save
-    with open(f'./results/{model}_layers.pkl', 'wb') as f:
-        pickle.dump(model_layers, f)
+    if save:
+        with open(f'./results/{model}_layers.pkl', 'wb') as f:
+            pickle.dump(model_layers, f)
 
-    print(f"Found {len(active_layers)} active layers in model {model}!")
+        print(f"Found {len(active_layers)} active layers in model {model}!")
 
  
 
@@ -217,7 +217,7 @@ def get_div_norm_scores(model, save=False):
     return np.array(layerwise_slopes), np.array(layerwise_slopes_sem)
 
 if __name__ == "__main__":
-    models = ['vgg16']
+    models = ['face_vit']
 
     for model in models:
         get_div_norm_scores(model, save=True)

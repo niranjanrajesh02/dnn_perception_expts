@@ -10,7 +10,8 @@ plot_models = {'CNNs': cnn_list, 'ViTs': vit_list}
 
 
 benchmark_results_path = '../benchmark_results'
-plot_save_path = '../plots/layerwise' 
+plot_save_path = '../plots/arch/layerwise'
+
 # 1 expt, all models
 def plot_model_layerwise_scores(expt):
     # get 'brain score"
@@ -42,24 +43,10 @@ def plot_model_layerwise_scores(expt):
             
             normalised_layer_scores = []
             # normalise scores to new range
-            
-            if num_layers <= 100:
-                layer_indices = np.linspace(0, 100, num_layers) # x values: 0-100, num_layers points
-                normalised_layer_scores = list(model_layerwise_score.values())
-            else:
-                window_size = int(np.floor(num_layers / 100))
-                # for every score in window_size, append the average
-                counter = 0
-                for i in range(0, num_layers, window_size):
-                    if counter <100:
-                        window = list(model_layerwise_score.values())[i:i+window_size]
-                    else: #ensure num_windows = 100
-                        window = list(model_layerwise_score.values())[i:] # 100th window is the remaining values
-                        break
-                    window_avg = np.mean(window)
-                    normalised_layer_scores.append(window_avg)
-                    counter += 1
-                layer_indices = np.arange(len(normalised_layer_scores))
+    
+            layer_indices = np.linspace(0, 100, num_layers) # x values: 0-100, num_layers points
+            normalised_layer_scores = list(model_layerwise_score.values())
+
             sns.lineplot(x=layer_indices, y=normalised_layer_scores, label=model)
     
         expt_title = dict(model_scores_df.iloc[expt-1])['expt_name']
@@ -83,7 +70,9 @@ def plot_model_layerwise_scores(expt):
         plt.savefig(f'{plot_save_path}/{expt_code}_{model_family}.png')
         plt.close()
         
+def plot_layerwise_scores_all_expts():
+    for expt in range(1,18):
+        if expt != 3:
+            plot_model_layerwise_scores(expt)
 
-for expt in range(1,18):
-    if expt != 3:
-        plot_model_layerwise_scores(expt)
+

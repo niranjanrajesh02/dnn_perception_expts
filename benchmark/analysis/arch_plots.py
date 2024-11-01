@@ -6,6 +6,9 @@ from _utils.network import get_model_feature_layer
 import ast
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.graph_objects as go
+import pandas as pd
+
 benchmark_results_path = '../benchmark_results'
 
 total_expts = 17 # includes sub-expts 
@@ -81,51 +84,74 @@ def load_model_scores(score_sel_method='features'):
     return model_scores, (expt_names, expt_y_labels)
 
 
-def expt_bar_plot(brain_scores, model_scores, expt_names):
-    expt_titles, expt_y_labels = expt_names
+def model_plot_radar(brain_scores, model_scores, expt_names):
+    cnns_scores = {}
+    vits_scores = {}
+    for model in cnn_list:
+        cnns_scores[model] = model_scores[model]
+    for model in vit_list:
+        vits_scores[model] = model_scores[model]
 
-    for expt_i in range(total_expts):
-        brain_score = brain_scores[expt_i]
+    all_scores = np.array(list(cnns_scores.values()) + list(vits_scores.values()))
+    all_models = list(cnns_scores.keys()) + list(vits_scores.keys())
 
-        cnns_scores = {}
-        vits_scores = {}
-        for model in cnn_list:
-            cnns_scores[model] = model_scores[model][expt_i]
-        for model in vit_list:
-            vits_scores[model] = model_scores[model][expt_i]
-
-        all_scores = np.array(list(cnns_scores.values()) + list(vits_scores.values()))
+  
+    fig = go.Figure()
+    colors = [
+        "#FF6666", "#FF4D4D", "#FF3333", "#FF1A1A", "#FF0000", "#E60000", "#CC0000", "#B20000",
+        "#6699FF", "#4D88FF", "#3377FF", "#1A66FF", "#0055FF", "#0044CC"
+        ]
+    
+    for model_i, model in enumerate(all_models):
+        scores = all_scores[model_i] 
+        labels = expt_names 
      
-        # barplot of all scores and x axis labels of model names
-        plt.figure(figsize=(10, 8))
+        fig.add_trace(go.Scatterpolar(
+            r=scores,
+            theta=labels,
+            name=f'{model}',
+            line={'color': colors[model_i]},
+            
+        ))
 
-        model_names = list(cnns_scores.keys()) + list(vits_scores.keys()) 
-        colours = ['blue'] * len(cnns_scores) + ['orange'] * len(vits_scores)
-        sns.barplot(x=model_names, y=all_scores, palette=colours)
-        # x ticks 45 deg
-        plt.xticks(rotation=45)
-        plt.title(expt_titles[expt_i])
-        plt.axhline(y=brain_score, color='green', linestyle='--')
-        plt.ylim(-1,1)
-        if expt_i ==2:
-            plt.ylabel('Score')
-        else:
-            plt.ylabel(expt_y_labels[expt_i])
-
-
-        plot_path = '../plots/scores'
-        expt_code = expt_titles[expt_i].split(':')[0]
-        plt.savefig(f'{plot_path}/{expt_code}.png')
+    fig.add_trace(go.Scatterpolar(
+        r=brain_scores,
+        theta=expt_names,
+        name='brain',
+        line={'width': 5, 'color': 'green' },
     
-       
-
+    ))
+    
+    fig.update_layout(
+    title=dict(
+        text="Experiment scores for Supervised CNNs and Vision Transformers",
+        x=0.5,
+        xanchor="center",
+        font=dict(size=18)
+    ),
+    polar=dict(
+        angularaxis=dict(
+            tickfont=dict(size=12),
+        ),
+        radialaxis=dict(
+        visible=True,
+        range=[-1, 1],
+        tickvals=[-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1],  # Grid every 0.2
+        ticktext=["-1", "", "", "", "", "0", "", "", "", "", "1"],  # Labels only for -1, 0, 1
+        )),
+    showlegend=True,
+    width=1400,
+    height=900
+    )
+    
+    fig.show()
+    fig.write_image(f'{benchmark_results_path}/arch_radar.png')
         
-    
 
 def main():
-    model_scores, expt_names = load_model_scores()   
+    model_scores, (expt_names, expt_y_labels) = load_model_scores()
     brain_scores = load_brain_score()
-    expt_bar_plot(brain_scores, model_scores, expt_names)
+    model_plot_radar(brain_scores, model_scores, expt_names)
 
 if __name__ == "__main__":
     main()

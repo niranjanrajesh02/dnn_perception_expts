@@ -32,7 +32,7 @@ def load_stim_file(path, stim_var='stim', model='vgg16'):
 
         img_size = 224
         if 'face_vit' in model:
-            img_size = 224
+            img_size = 112
             
         transform = transforms.Compose([
             padding_transform,

@@ -117,12 +117,9 @@ def shape_texture_sparseness_correlation(model, save=False):
         layerwise_reps = np.array(layerwise_reps)
         normalized_shape_reps = normalize(layerwise_reps)
         
-        van_units_shape = np.where(np.sum(normalized_shape_reps, axis=0)>0)[0]
-        layerwise_van_shape.append(van_units_shape)
+        van_units_shape = np.where(np.sum(normalized_shape_reps, axis=0)>0)[0] # if one unit responds the same way to all stimuli, 
+        layerwise_van_shape.append(van_units_shape)                            # its' normalized value will be 0, so sum will also remain 0
         
- 
-    del shape_reps
-    gc.collect()
 
     texture_reps = []
     print("Extracting textures layerwise activations...")
@@ -147,16 +144,12 @@ def shape_texture_sparseness_correlation(model, save=False):
         layerwise_van_texture.append(van_units_texture)
         
  
-    del texture_reps
-    gc.collect()
+    
 
     layerwise_sparseness_correlation = []
     print("Computing layerwise sparseness correlation...")
-    for layer_i, layer in enumerate(tqdm(layers)):
-        van_units_shape = layerwise_van_shape[layer_i]
-        van_units_texture = layerwise_van_texture[layer_i]
-        van_units_both = np.intersect1d(van_units_shape, van_units_texture)
         
+    for layer_i, layer in enumerate(tqdm(layers)):
         layer_reps = []
         for img_i in range(n_stim*2):
             layer_reps.append(get_layerwise_activations(stim[img_i])[layer].flatten())
@@ -165,6 +158,13 @@ def shape_texture_sparseness_correlation(model, save=False):
 
         normalized_shape_reps = normalize(np.array(shape_reps))
         normalized_texture_reps = normalize(np.array(texture_reps))
+
+        van_units_shape = layerwise_van_shape[layer_i]
+        van_units_texture = layerwise_van_texture[layer_i]
+        van_units_both = np.intersect1d(van_units_shape, van_units_texture)
+        
+        normalized_shape_reps = normalized_shape_reps[:, van_units_both]
+        normalized_texture_reps = normalized_texture_reps[:, van_units_both]
        
         
         # finding sparseness 
@@ -192,7 +192,8 @@ def get_corr_sparse_scores(model_name):
 
 if __name__ == '__main__':
     
-    morph_ref_sparseness_correlation('vgg16', save=True)
+    # morph_ref_sparseness_correlation('vgg16', save=True)
     shape_texture_sparseness_correlation('vgg16', save=True)
+    shape_texture_sparseness_correlation('vit_base', save=True)
 # might need to run multiple times to get stable results
 
